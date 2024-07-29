@@ -1,0 +1,55 @@
+# The name of the bundle. run `databricks bundle schema` to see the full bundle settings schema.
+bundle:
+  name: my_mlops_stack
+
+variables:
+  experiment_name:
+    description: Experiment name for the model training.
+    default: /Users/${workspace.current_user.userName}/${bundle.target}-my_mlops_stack-experiment
+  model_name:
+    description: Model name for the model training.
+    default: ${bundle.target}-my_mlops_stack-model
+  cluster_id:
+    description: Cluster id for compute.
+    default: 0603-073547-ypydpsk
+
+include:
+  # Resources folder contains ML artifact resources for the ML project that defines model and experiment
+  # And workflows resources for the ML project including model training -> validation -> deployment,
+  # feature engineering,  batch inference, quality monitoring, metric refresh, alerts and triggering retraining
+  - ./resources/*.yml
+  # - ./resources/ml-artifacts-resource.yml
+  # - ./resources/model-workflow-resource.yml
+  # - ./resources/feature-engineering-workflow-resource.yml
+  # - ./resources/monitoring-resource.yml
+
+# Deployment Target specific values for workspace
+targets:
+  dev: 
+    default: true
+    variables:
+        cluster_id: 0603-073547-ypydpsk
+    workspace:
+      # TODO: add dev workspace URL
+      host: https://adb-2753962522174656.16.azuredatabricks.net
+
+
+
+  staging:
+    variables:
+        cluster_id: 0603-073547-ypydpsk
+    workspace:
+      host: https://adb-2753962522174656.16.azuredatabricks.net
+
+  prod:
+    variables:
+        cluster_id: 0603-073547-ypydpsk
+    workspace:
+      host: https://adb-2753962522174656.16.azuredatabricks.net
+
+  test:
+    variables:
+        cluster_id: 0603-073547-ypydpsk
+    workspace:
+      host: https://adb-2753962522174656.16.azuredatabricks.net
+
