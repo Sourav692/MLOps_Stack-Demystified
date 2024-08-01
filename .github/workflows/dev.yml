@@ -1,0 +1,61 @@
+name: Deploy to DEV
+
+concurrency: 1
+
+on:
+  push:
+    branches:
+      - 'github-action'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: "Deploy bundle"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: databricks/setup-cli@main
+
+      - run: databricks bundle deploy --target dev --profile DEFAULT
+        env:
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_BUNDLE_ENV: dev
+
+  pipeline_update:
+    name: "Run pipeline update"
+    runs-on: ubuntu-latest
+
+    needs:
+      - deploy
+
+    steps:
+      - uses: actions/checkout@v3
+
+#       - uses: actions/setup-python@v4
+#         with:
+#           python-version: 3.11
+#           cache: 'pip'
+
+#       - run: pip install -r requirements.txt 1
+#         working-directory: .github/support
+
+      - uses: databricks/setup-cli@main
+
+      - shell: bash
+        name: Run Feature Engineering Workflow for Development Deployment dev in Staging Workspace
+        run: |
+          set -o pipefail
+          databricks bundle run write_feature_table_job -t dev --profile DEFAULT --refresh-all 2>&1 | tee output.log
+        env:
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_BUNDLE_ENV: dev
+      - shell: bash
+        name: Run pipeline update
+        run: |
+          set -o pipefail
+          databricks bundle run model-training-job -t dev --profile DEFAULT --refresh-all 2>&1 | tee output.log
+        env:
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_BUNDLE_ENV: dev
