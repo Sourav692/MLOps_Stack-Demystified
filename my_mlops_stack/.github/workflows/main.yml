@@ -12,8 +12,7 @@ on:
     branches:
       - dev
     paths:
-      - "**/*.yml"
-      - "**/*.py"
+      - 'my_mlops_stack/**'
 
 jobs:
   deploy:
