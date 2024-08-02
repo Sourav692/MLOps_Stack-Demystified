@@ -1,0 +1,284 @@
+{
+  "terraform": {
+    "required_providers": {
+      "databricks": {
+        "source": "databricks/databricks",
+        "version": "1.49.1"
+      }
+    }
+  },
+  "provider": {
+    "databricks": {}
+  },
+  "resource": {
+    "databricks_job": {
+      "batch_inference_job": {
+        "deployment": {
+          "kind": "BUNDLE",
+          "metadata_file_path": "/Users/sourav.banerjee@databricks.com/.bundle/my_mlops_stack/dev/state/metadata.json"
+        },
+        "edit_mode": "UI_LOCKED",
+        "format": "MULTI_TASK",
+        "name": "dev-my_mlops_stack-batch-inference-job",
+        "queue": {
+          "enabled": true
+        },
+        "schedule": {
+          "quartz_cron_expression": "0 0 11 * * ?",
+          "timezone_id": "UTC"
+        },
+        "task": [
+          {
+            "new_cluster": {
+              "custom_tags": {
+                "clusterSource": "mlops-stacks_0.4"
+              },
+              "node_type_id": "Standard_D3_v2",
+              "num_workers": 3,
+              "spark_version": "15.3.x-cpu-ml-scala2.12"
+            },
+            "notebook_task": {
+              "base_parameters": {
+                "env": "dev",
+                "git_source_info": "url:https://github.com/Sourav692/MLOps_Stack-Demystified.git; branch:github-action; commit:c13f10f748500c19f5d7cb183fa994291d6007ae",
+                "input_table_name": "hive_metastore.default.taxi_scoring_sample_feature_store_inference_input",
+                "model_name": "dev-my_mlops_stack-model",
+                "output_table_name": "dev_my_mlops_stack_predictions"
+              },
+              "notebook_path": "/Users/sourav.banerjee@databricks.com/.bundle/my_mlops_stack/dev/files/deployment/batch_inference/notebooks/BatchInference"
+            },
+            "task_key": "batch_inference_job"
+          }
+        ]
+      },
+      "model_training_job": {
+        "deployment": {
+          "kind": "BUNDLE",
+          "metadata_file_path": "/Users/sourav.banerjee@databricks.com/.bundle/my_mlops_stack/dev/state/metadata.json"
+        },
+        "edit_mode": "UI_LOCKED",
+        "format": "MULTI_TASK",
+        "job_cluster": [
+          {
+            "job_cluster_key": "model_training_job_cluster",
+            "new_cluster": {
+              "custom_tags": {
+                "clusterSource": "mlops-stacks_0.4"
+              },
+              "node_type_id": "Standard_D3_v2",
+              "num_workers": 3,
+              "spark_version": "15.3.x-cpu-ml-scala2.12"
+            }
+          }
+        ],
+        "name": "dev-my_mlops_stack-model-training-job",
+        "queue": {
+          "enabled": true
+        },
+        "task": [
+          {
+            "existing_cluster_id": "0603-073547-ypydpsk",
+            "job_cluster_key": "model_training_job_cluster",
+            "notebook_task": {
+              "base_parameters": {
+                "dropoff_features_table": "feature_store_taxi_example.dev_my_mlops_stack_trip_dropoff_features",
+                "env": "dev",
+                "experiment_name": "/Users/sourav.banerjee@databricks.com/dev-my_mlops_stack-experiment",
+                "git_source_info": "url:https://github.com/Sourav692/MLOps_Stack-Demystified.git; branch:github-action; commit:c13f10f748500c19f5d7cb183fa994291d6007ae",
+                "model_name": "dev-my_mlops_stack-model",
+                "pickup_features_table": "feature_store_taxi_example.dev_my_mlops_stack_trip_pickup_features",
+                "training_data_path": "/databricks-datasets/nyctaxi-with-zipcodes/subsampled"
+              },
+              "notebook_path": "/Users/sourav.banerjee@databricks.com/.bundle/my_mlops_stack/dev/files/training/notebooks/TrainWithFeatureStore"
+            },
+            "task_key": "Train"
+          },
+          {
+            "depends_on": [
+              {
+                "task_key": "Train"
+              }
+            ],
+            "existing_cluster_id": "0603-073547-ypydpsk",
+            "job_cluster_key": "model_training_job_cluster",
+            "notebook_task": {
+              "base_parameters": {
+                "custom_metrics_loader_function": "custom_metrics",
+                "enable_baseline_comparison": "false",
+                "evaluator_config_loader_function": "evaluator_config",
+                "experiment_name": "/Users/sourav.banerjee@databricks.com/dev-my_mlops_stack-experiment",
+                "git_source_info": "url:https://github.com/Sourav692/MLOps_Stack-Demystified.git; branch:github-action; commit:c13f10f748500c19f5d7cb183fa994291d6007ae",
+                "model_type": "regressor",
+                "run_mode": "dry_run",
+                "targets": "fare_amount",
+                "validation_input": "SELECT * FROM delta.`dbfs:/databricks-datasets/nyctaxi-with-zipcodes/subsampled`",
+                "validation_thresholds_loader_function": "validation_thresholds"
+              },
+              "notebook_path": "/Users/sourav.banerjee@databricks.com/.bundle/my_mlops_stack/dev/files/validation/notebooks/ModelValidation"
+            },
+            "task_key": "ModelValidation"
+          },
+          {
+            "depends_on": [
+              {
+                "task_key": "ModelValidation"
+              }
+            ],
+            "existing_cluster_id": "0603-073547-ypydpsk",
+            "job_cluster_key": "model_training_job_cluster",
+            "notebook_task": {
+              "base_parameters": {
+                "env": "dev",
+                "git_source_info": "url:https://github.com/Sourav692/MLOps_Stack-Demystified.git; branch:github-action; commit:c13f10f748500c19f5d7cb183fa994291d6007ae"
+              },
+              "notebook_path": "/Users/sourav.banerjee@databricks.com/.bundle/my_mlops_stack/dev/files/deployment/model_deployment/notebooks/ModelDeployment"
+            },
+            "task_key": "ModelDeployment"
+          },
+          {
+            "depends_on": [
+              {
+                "task_key": "ModelDeployment"
+              }
+            ],
+            "existing_cluster_id": "0603-073547-ypydpsk",
+            "job_cluster_key": "model_training_job_cluster",
+            "notebook_task": {
+              "base_parameters": {
+                "env": "dev",
+                "git_source_info": "url:https://github.com/Sourav692/MLOps_Stack-Demystified.git; branch:github-action; commit:c13f10f748500c19f5d7cb183fa994291d6007ae"
+              },
+              "notebook_path": "/Users/sourav.banerjee@databricks.com/.bundle/my_mlops_stack/dev/files/deployment/model_serving/notebooks/ModelServing"
+            },
+            "task_key": "ModelServing"
+          }
+        ]
+      },
+      "write_feature_table_job": {
+        "deployment": {
+          "kind": "BUNDLE",
+          "metadata_file_path": "/Users/sourav.banerjee@databricks.com/.bundle/my_mlops_stack/dev/state/metadata.json"
+        },
+        "edit_mode": "UI_LOCKED",
+        "format": "MULTI_TASK",
+        "job_cluster": [
+          {
+            "job_cluster_key": "write_feature_table_job_cluster",
+            "new_cluster": {
+              "custom_tags": {
+                "clusterSource": "mlops-stacks_0.4"
+              },
+              "node_type_id": "Standard_D3_v2",
+              "num_workers": 3,
+              "spark_version": "15.3.x-cpu-ml-scala2.12"
+            }
+          }
+        ],
+        "name": "dev-my_mlops_stack-write-feature-table-job",
+        "queue": {
+          "enabled": true
+        },
+        "schedule": {
+          "quartz_cron_expression": "0 0 7 * * ?",
+          "timezone_id": "UTC"
+        },
+        "task": [
+          {
+            "job_cluster_key": "write_feature_table_job_cluster",
+            "notebook_task": {
+              "base_parameters": {
+                "existing_cluster_id": "0603-073547-ypydpsk",
+                "features_transform_module": "pickup_features",
+                "git_source_info": "url:https://github.com/Sourav692/MLOps_Stack-Demystified.git; branch:github-action; commit:c13f10f748500c19f5d7cb183fa994291d6007ae",
+                "input_end_date": "",
+                "input_start_date": "",
+                "input_table_path": "/databricks-datasets/nyctaxi-with-zipcodes/subsampled",
+                "output_table_name": "feature_store_taxi_example.dev_my_mlops_stack_trip_pickup_features",
+                "primary_keys": "zip",
+                "timestamp_column": "tpep_pickup_datetime"
+              },
+              "notebook_path": "/Users/sourav.banerjee@databricks.com/.bundle/my_mlops_stack/dev/files/feature_engineering/notebooks/GenerateAndWriteFeatures"
+            },
+            "task_key": "PickupFeatures"
+          },
+          {
+            "job_cluster_key": "write_feature_table_job_cluster",
+            "notebook_task": {
+              "base_parameters": {
+                "existing_cluster_id": "0603-073547-ypydpsk",
+                "features_transform_module": "dropoff_features",
+                "git_source_info": "url:https://github.com/Sourav692/MLOps_Stack-Demystified.git; branch:github-action; commit:c13f10f748500c19f5d7cb183fa994291d6007ae",
+                "input_end_date": "",
+                "input_start_date": "",
+                "input_table_path": "/databricks-datasets/nyctaxi-with-zipcodes/subsampled",
+                "output_table_name": "feature_store_taxi_example.dev_my_mlops_stack_trip_dropoff_features",
+                "primary_keys": "zip",
+                "timestamp_column": "tpep_dropoff_datetime"
+              },
+              "notebook_path": "/Users/sourav.banerjee@databricks.com/.bundle/my_mlops_stack/dev/files/feature_engineering/notebooks/GenerateAndWriteFeatures"
+            },
+            "task_key": "DropoffFeatures"
+          }
+        ]
+      }
+    },
+    "databricks_mlflow_experiment": {
+      "experiment": {
+        "name": "/Users/sourav.banerjee@databricks.com/dev-my_mlops_stack-experiment"
+      }
+    },
+    "databricks_mlflow_model": {
+      "model": {
+        "description": "MLflow registered model for the \"my_mlops_stack\" ML Project for dev deployment target.",
+        "name": "dev-my_mlops_stack-model"
+      }
+    },
+    "databricks_permissions": {
+      "job_batch_inference_job": {
+        "job_id": "${databricks_job.batch_inference_job.id}",
+        "access_control": [
+          {
+            "group_name": "users",
+            "permission_level": "CAN_VIEW"
+          }
+        ]
+      },
+      "job_model_training_job": {
+        "job_id": "${databricks_job.model_training_job.id}",
+        "access_control": [
+          {
+            "group_name": "users",
+            "permission_level": "CAN_VIEW"
+          }
+        ]
+      },
+      "job_write_feature_table_job": {
+        "job_id": "${databricks_job.write_feature_table_job.id}",
+        "access_control": [
+          {
+            "group_name": "users",
+            "permission_level": "CAN_VIEW"
+          }
+        ]
+      },
+      "mlflow_experiment_experiment": {
+        "experiment_id": "${databricks_mlflow_experiment.experiment.id}",
+        "access_control": [
+          {
+            "group_name": "users",
+            "permission_level": "CAN_READ"
+          }
+        ]
+      },
+      "mlflow_model_model": {
+        "registered_model_id": "${databricks_mlflow_model.model.registered_model_id}",
+        "access_control": [
+          {
+            "group_name": "users",
+            "permission_level": "CAN_READ"
+          }
+        ]
+      }
+    }
+  }
+}
