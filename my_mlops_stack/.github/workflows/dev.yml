@@ -17,7 +17,7 @@ on:
       
 defaults:
   run:
-    working-directory: ./my_mlops_stack
+    working-directory: ./my_mlops_stack/my_mlops_stack
 
 jobs:
   deploy:
