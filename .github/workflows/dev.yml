@@ -47,7 +47,6 @@ jobs:
       - shell: bash
         name: Run pipeline update
         run: |
-          set -o pipefail
           databricks bundle run run write_feature_table_job -t dev --profile DEFAULT --refresh-all 2>&1 | tee output.log
         env:
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
