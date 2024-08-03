@@ -33,19 +33,25 @@ targets:
       # TODO: add dev workspace URL
       host: https://adb-2753962522174656.16.azuredatabricks.net
 
-
-
   staging:
+    mode: production
     variables:
         cluster_id: 0603-073547-ypydpsk
     workspace:
       host: https://adb-2753962522174656.16.azuredatabricks.net
+      root_path: /Users/sourav.banerjee@databricks.com/.bundle/${bundle.name}/${bundle.target}
+    run_as:
+      user_name: sourav.banerjee@databricks.com
+      
 
   prod:
     variables:
         cluster_id: 0603-073547-ypydpsk
     workspace:
       host: https://adb-2753962522174656.16.azuredatabricks.net
+      root_path: /Users/sourav.banerjee@databricks.com/.bundle/${bundle.name}/${bundle.target}
+    run_as:
+      user_name: sourav.banerjee@databricks.com
 
   test:
     variables:
