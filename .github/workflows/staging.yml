@@ -10,7 +10,7 @@ on:
       - opened
       - synchronize
     branches:
-      - dev
+      - staging
     paths:
       - 'my_mlops_stack/**'
       - '.github/workflows/*.yml'
@@ -30,7 +30,7 @@ jobs:
       - run: databricks bundle deploy
         env:
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-          DATABRICKS_BUNDLE_ENV: dev
+          DATABRICKS_BUNDLE_ENV: staging
 
   feature_engineering:
     name: "Run Feature Engineering"
@@ -45,10 +45,10 @@ jobs:
       - shell: bash
         name: Run pipeline update
         run: |
-          databricks bundle run write_feature_table_job -t dev --refresh-all 2>&1 | tee output.log
+          databricks bundle run write_feature_table_job -t dev --refresh-all 2>&1 | tee feature_engineering_output.log
         env:
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-          DATABRICKS_BUNDLE_ENV: dev
+          DATABRICKS_BUNDLE_ENV: staging
   
   model_training:
     name: "Run Model Training"
@@ -63,10 +63,10 @@ jobs:
       - shell: bash
         name: Run pipeline update
         run: |
-          databricks bundle run model_training_job -t dev --refresh-all 2>&1 | tee model-training-job_output.log
+          databricks bundle run model_training_job -t dev --refresh-all 2>&1 | tee model_training_output.log
         env:
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-          DATABRICKS_BUNDLE_ENV: dev
+          DATABRICKS_BUNDLE_ENV: staging
   
   batch_inference:
     name: "Run Batch Inference"
@@ -81,8 +81,8 @@ jobs:
       - shell: bash
         name: Run pipeline update
         run: |
-          databricks bundle run batch_inference_job -t dev --refresh-all 2>&1 | tee model-training-job_output.log
+          databricks bundle run batch_inference_job -t dev --refresh-all 2>&1 | tee batch_inference-job_output.log
         env:
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-          DATABRICKS_BUNDLE_ENV: dev 
+          DATABRICKS_BUNDLE_ENV: staging 
             
