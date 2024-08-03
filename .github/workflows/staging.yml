@@ -1,4 +1,4 @@
-name: Deploy to DEVELOPMENT
+name: Deploy to Staging
 
 concurrency: 1
 
