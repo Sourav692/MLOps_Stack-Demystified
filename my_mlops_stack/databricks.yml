@@ -45,6 +45,7 @@ targets:
       
 
   prod:
+    mode: production
     variables:
         cluster_id: 0603-073547-ypydpsk
     workspace:

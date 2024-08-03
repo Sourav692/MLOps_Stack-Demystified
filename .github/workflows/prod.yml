@@ -1,4 +1,4 @@
-name: Deploy to DEVELOPMENT
+name: Deploy to Prod
 
 concurrency: 1
 
@@ -27,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: databricks/setup-cli@main
-      - run: databricks bundle deploy
+      - run: databricks bundle deploy -t prod
         env:
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
           DATABRICKS_BUNDLE_ENV: prod
@@ -45,7 +45,7 @@ jobs:
       - shell: bash
         name: Run pipeline update
         run: |
-          databricks bundle run write_feature_table_job -t dev --refresh-all 2>&1 | tee feature_engineering_output.log
+          databricks bundle run write_feature_table_job -t prod --refresh-all 2>&1 | tee feature_engineering_output.log
         env:
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
           DATABRICKS_BUNDLE_ENV: prod
@@ -63,7 +63,7 @@ jobs:
       - shell: bash
         name: Run pipeline update
         run: |
-          databricks bundle run model_training_job -t dev --refresh-all 2>&1 | tee model_training_output.log
+          databricks bundle run model_training_job -t prod --refresh-all 2>&1 | tee model_training_output.log
         env:
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
           DATABRICKS_BUNDLE_ENV: prod
@@ -81,7 +81,7 @@ jobs:
       - shell: bash
         name: Run pipeline update
         run: |
-          databricks bundle run batch_inference_job -t dev --refresh-all 2>&1 | tee batch_inference-job_output.log
+          databricks bundle run batch_inference_job -t prod --refresh-all 2>&1 | tee batch_inference-job_output.log
         env:
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
           DATABRICKS_BUNDLE_ENV: prod 
