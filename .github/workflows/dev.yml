@@ -32,8 +32,44 @@ jobs:
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
           DATABRICKS_BUNDLE_ENV: dev
 
-  feature_engineering:
-    name: "Run Feature Engineering"
+  # feature_engineering:
+  #   name: "Run Feature Engineering"
+  #   runs-on: ubuntu-latest
+
+  #   needs:
+  #     - deploy
+
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: databricks/setup-cli@main
+  #     - shell: bash
+  #       name: Run pipeline update
+  #       run: |
+  #         databricks bundle run write_feature_table_job -t dev --refresh-all 2>&1 | tee output.log
+  #       env:
+  #         DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+  #         DATABRICKS_BUNDLE_ENV: dev
+  
+  # model_training:
+  #   name: "Run Model Training"
+  #   runs-on: ubuntu-latest
+
+  #   needs:
+  #     - feature_engineering
+
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: databricks/setup-cli@main
+  #     - shell: bash
+  #       name: Run pipeline update
+  #       run: |
+  #         databricks bundle run model_training_job -t dev --refresh-all 2>&1 | tee model-training-job_output.log
+  #       env:
+  #         DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+  #         DATABRICKS_BUNDLE_ENV: dev
+  
+  batch_inference:
+    name: "Run Batch Inference"
     runs-on: ubuntu-latest
 
     needs:
@@ -45,25 +81,8 @@ jobs:
       - shell: bash
         name: Run pipeline update
         run: |
-          databricks bundle run write_feature_table_job -t dev --refresh-all 2>&1 | tee output.log
+          databricks bundle run batch_inference_job -t dev --refresh-all 2>&1 | tee model-training-job_output.log
         env:
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-          DATABRICKS_BUNDLE_ENV: dev
-  
-  model_training:
-    name: "Run Model Training"
-    runs-on: ubuntu-latest
-
-    needs:
-      - feature_engineering
-
-    steps:
-      - uses: actions/checkout@v3
-      - uses: databricks/setup-cli@main
-      - shell: bash
-        name: Run pipeline update
-        run: |
-          databricks bundle run model_training_job -t dev --refresh-all 2>&1 | tee model-training-job_output.log
-        env:
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-          DATABRICKS_BUNDLE_ENV: dev          
+          DATABRICKS_BUNDLE_ENV: dev 
+            
