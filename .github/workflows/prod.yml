@@ -1,4 +1,4 @@
-name: Deploy to Prod
+name: Deploy to Production
 
 concurrency: 1
 
