@@ -1,24 +1,30 @@
 # my_mlops_stack
+This project comes with example ML code to train, validate and deploy a regression model to predict NYC taxi fares.
+If you're a data scientist just getting started with this repo for a brand new ML project, we recommend 
+adapting the provided example code to your ML problem. Then making and 
+testing ML code changes on Databricks or your local machine.
+
+The "Getting Started" docs can be found at https://learn.microsoft.com/azure/databricks/dev-tools/bundles/mlops-stacks.
+
+## Table of contents
+* [Code structure](#code-structure): structure of this project.
+
+* [Configure your ML pipeline](#configure-your-ml-pipeline): making and testing ML code changes on Databricks or your local machine.
+
+* [Iterating on ML code](#iterating-on-ml-code): making and testing ML code changes on Databricks or your local machine.
+* [Next steps](#next-steps)
 
 This directory contains an ML project based on the default
 [Databricks MLOps Stacks](https://github.com/databricks/mlops-stacks),
 defining a production-grade ML pipeline for automated retraining and batch inference of an ML model on tabular data.
-The "Getting Started" docs can be found at https://learn.microsoft.com/azure/databricks/dev-tools/bundles/mlops-stacks.
-
-See the full pipeline structure below. The [MLOps Stacks README](https://github.com/databricks/mlops-stacks/blob/main/Pipeline.md)
-contains additional details on how ML pipelines are tested and deployed across each of the dev, staging, prod environments below.
-
-![MLOps Stacks diagram](docs/images/mlops-stack-summary.png)
-
 
 ## Code structure
 This project contains the following components:
 
 | Component                  | Description                                                                                                                                                                                                                                                                                                                                             |
 |----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| ML Code                    | Example ML project code, with unit tested Python modules and notebooks                                                                                                                                                                                                                                                                             |
+| ML Code                    | Example ML project code, with unit tested Python modules and notebooks                                                                                                                                                                                                                                                                                  |
 | ML Resources as Code | ML pipeline resources (training and batch inference jobs with schedules, etc) configured and deployed through [databricks CLI bundles](https://learn.microsoft.com/azure/databricks/dev-tools/cli/bundle-cli)                                                                                              |
-| CI/CD                      | [GitHub Actions](https://github.com/actions) workflows to test and deploy ML code and resources       |
 
 contained in the following files:
 
@@ -61,55 +67,98 @@ my_mlops_stack        <- Root directory. Both monorepo and polyrepo are supporte
 │       ├── ml-artifacts-resource.yml                  <- ML resource config definition for model and experiment
 │       │
 │       ├── monitoring-resource.yml           <- ML resource config definition for quality monitoring workflow
-│
-├── .github                     <- Configuration folder for CI/CD using GitHub Actions.  The CI/CD workflows deploy ML resources defined in the `./resources/*` folder with databricks CLI bundles.
-│
-├── docs                        <- Contains documentation for the repo.
-│
-├── cicd.tar.gz                 <- Contains CI/CD bundle that should be deployed by deploy-cicd.yml to set up CI/CD for projects.
 ```
 
-## Using this repo
 
-The table below links to detailed docs explaining how to use this repo for different use cases.
+## Configure your ML pipeline
 
+The sample ML code consists of the following:
 
-This project comes with example ML code to train, validate and deploy a regression model to predict NYC taxi fares.
-If you're a data scientist just getting started with this repo for a brand new ML project, we recommend 
-adapting the provided example code to your ML problem. Then making and 
-testing ML code changes on Databricks or your local machine. Follow the instructions from
-the [project README](./my_mlops_stack/README.md).
- 
+* Feature computation modules under `feature_engineering` folder. 
+These sample module contains features logic that can be used to generate and populate tables in Feature Store.
+In each module, there is `compute_features_fn` method that you need to implement. This should compute a features dataframe
+(each column being a separate feature), given the input dataframe, timestamp column and time-ranges. 
+The output dataframe will be persisted in a [time-series Feature Store table](https://learn.microsoft.com/azure/databricks/machine-learning/feature-store/time-series).
+See the example modules' documentation for more information.
+* Python unit tests for feature computation modules in `tests/feature_engineering` folder.
+* Feature engineering notebook, `feature_engineering/notebooks/GenerateAndWriteFeatures.py`, that reads input dataframes, dynamically loads feature computation modules, executes their `compute_features_fn` method and writes the outputs to a Feature Store table (creating it if missing).
+* Training notebook that [trains](https://learn.microsoft.com/azure/databricks/machine-learning/feature-store/train-models-with-feature-store ) a regression model by creating a training dataset using the Feature Store client.
+* Model deployment and batch inference notebooks that deploy and use the trained model. 
+* An automated integration test is provided (in `.github/workflows/my_mlops_stack-run-tests.yml`) that executes a multi task run on Databricks involving the feature engineering and model training notebooks.
 
-When you're ready to deploy production training/inference
-pipelines, ask your ops team to follow the [MLOps setup guide](docs/mlops-setup.md) to configure CI/CD and deploy 
-production ML pipelines.
+To adapt this sample code for your use case, implement your own feature module, specifying configs such as input Delta tables/dataset path(s) to use when developing
+the feature engineering pipelines.
+1. Implement your feature module, address TODOs in `feature_engineering/features` and create unit test in `tests/feature_engineering`
+2. Update `resources/feature-engineering-workflow-resource.yml`. Fill in notebook parameters for `write_feature_table_job`.
+3. Update training data path in `resources/model-workflow-resource.yml`.
 
-After that, follow the [ML pull request guide](docs/ml-pull-request.md)
- and [ML resource config guide](my_mlops_stack/resources/README.md)  to propose, test, and deploy changes to production ML code (e.g. update model parameters)
-or pipeline resources (e.g. use a larger instance type for model training) via pull request.
-
-| Role                          | Goal                                                                         | Docs                                                                                                                                                                |
-|-------------------------------|------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Data Scientist                | Get started writing ML code for a brand new project                          | [project README](./my_mlops_stack/README.md) |
-| MLOps / DevOps                | Set up CI/CD for the current ML project   | [MLOps setup guide](docs/mlops-setup.md)                                                                                                                            |
-| Data Scientist                | Update production ML code (e.g. model training logic) for an existing project | [ML pull request guide](docs/ml-pull-request.md)                                                                                                                    |
-| Data Scientist                | Modify production model ML resources, e.g. model training or inference jobs  | [ML resource config guide](my_mlops_stack/resources/README.md)  |
-
-## Setting up CI/CD
-This stack comes with a workflow to set up CI/CD for projects that can be found in
-
-`.github/workflows/deploy-cicd.yml`.
+We expect most of the development to take place in the `feature_engineering` folder.
 
 
-To set up CI/CD for projects that were created through MLOps Stacks with the `Project_Only` parameter, 
-run the above mentioned workflow, specifying the `project_name` as a parameter. For example, for the monorepo case:
+## Iterating on ML code
 
-1. Setup your repository by initializing MLOps Stacks via Databricks CLI with the `CICD_and_Project` or `CICD_Only` parameter.
-2. Follow the [MLOps Setup Guide](./docs/mlops-setup.md) to setup authentication and get the repo ready for CI/CD.
-3. Create a new project by initializing MLOps Stacks again but this time with the `Project_Only` parameter.
-4. Run the `deploy-cicd.yml` workflow with the `project_name` parameter set to the name of the project you want to set up CI/CD for.
+### Deploy ML code and resources to dev workspace using Bundles
+
+Refer to [Local development and dev workspace](./resources/README.md#local-development-and-dev-workspace)
+to use databricks CLI bundles to deploy ML code together with ML resource configs to dev workspace.
+
+This will allow you to develop locally and use databricks CLI bundles to deploy to your dev workspace to test out code and config changes.
+
+### Develop on Databricks using Databricks Repos
+
+#### Prerequisites
+You'll need:
+* Access to run commands on a cluster running Databricks Runtime ML version 11.0 or above in your dev Databricks workspace
+* To set up [Databricks Repos](https://learn.microsoft.com/azure/databricks/repos/index): see instructions below
+
+#### Configuring Databricks Repos
+To use Repos, [set up git integration](https://learn.microsoft.com/azure/databricks/repos/repos-setup) in your dev workspace.
+
+If the current project has already been pushed to a hosted Git repo, follow the
+[UI workflow](https://learn.microsoft.com/azure/databricks/repos/git-operations-with-repos#add-a-repo-and-connect-remotely-later)
+to clone it into your dev workspace and iterate. 
+
+Otherwise, e.g. if iterating on ML code for a new project, follow the steps below:
+* Follow the [UI workflow](https://learn.microsoft.com/azure/databricks/repos/git-operations-with-repos#add-a-repo-and-connect-remotely-later)
+  for creating a repo, but uncheck the "Create repo by cloning a Git repository" checkbox.
+* Install the `dbx` CLI via `pip install --upgrade dbx`
+* Run `databricks configure --profile my_mlops_stack-dev --token --host <your-dev-workspace-url>`, passing the URL of your dev workspace.
+  This should prompt you to enter an API token
+* [Create a personal access token](https://learn.microsoft.com/azure/databricks/dev-tools/auth/pat)
+  in your dev workspace and paste it into the prompt from the previous step
+* From within the root directory of the current project, use the [dbx sync](https://dbx.readthedocs.io/en/latest/guides/python/devloop/mixed/#using-dbx-sync-repo-for-local-to-repo-synchronization) tool to copy code files from your local machine into the Repo by running
+  `dbx sync repo --profile my_mlops_stack-dev --source . --dest-repo your-repo-name`, where `your-repo-name` should be the last segment of the full repo name (`/Repos/username/your-repo-name`)
 
 
-NOTE: This project has already been initialized with an instantiation of the above workflow, so there's no
-need to run it again for project `my_mlops_stack`.
+### Develop locally
+
+You can iterate on the feature transform modules locally in your favorite IDE before running them on Databricks.  
+
+#### Running code on Databricks
+You can iterate on ML code by running the provided `feature_engineering/notebooks/GenerateAndWriteFeatures.py` notebook on Databricks using
+[Repos](https://learn.microsoft.com/azure/databricks/repos/index). This notebook drives execution of
+the feature transforms code defined under ``features``. You can use multiple browser tabs to edit
+logic in `features` and run the feature engineering pipeline in the `GenerateAndWriteFeatures.py` notebook.
+
+#### Prerequisites
+* Python 3.8+
+* Install feature engineering code and test dependencies via `pip install -I -r requirements.txt` from project root directory.
+* The features transform code uses PySpark and brings up a local Spark instance for testing, so [Java (version 8 and later) is required](https://spark.apache.org/docs/latest/#downloading).
+
+#### Run unit tests
+You can run unit tests for your ML code via `pytest tests`.
+
+
+
+## Next Steps
+
+When you're satisfied with initial ML experimentation (e.g. validated that a model with reasonable performance can be trained on your dataset) and ready to deploy production training/inference pipelines, ask your ops team to set up CI/CD for the current ML project if they haven't already. CI/CD can be set up as part of the
+
+MLOps Stacks initialization even if it was skipped in this case, or this project can be added to a repo setup with CI/CD already, following the directions under "Setting up CI/CD" in the repo root directory README.
+
+To add CI/CD to this repo:
+ 1. Run `databricks bundle init mlops-stacks` via the Databricks CLI
+ 2. Select the option to only initialize `CICD_Only`
+ 3. Provide the root directory of this project and answer the subsequent prompts
+
+More details can be found on the homepage [MLOps Stacks README](https://github.com/databricks/mlops-stacks/blob/main/README.md).
