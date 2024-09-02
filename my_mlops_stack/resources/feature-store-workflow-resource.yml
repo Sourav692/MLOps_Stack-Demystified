@@ -1,0 +1,45 @@
+new_cluster: &new_cluster
+  new_cluster:
+    num_workers: 3
+    spark_version: 15.3.x-cpu-ml-scala2.12
+    node_type_id: Standard_D3_v2
+    custom_tags:
+      clusterSource: mlops-stacks_0.4
+
+common_permissions: &permissions
+  permissions:
+    - level: CAN_VIEW
+      group_name: users
+
+resources:
+  jobs:
+    test_feature_table_job:
+      name: ${bundle.target}-ml_in_production_feature_store_job
+      job_clusters:
+        - job_cluster_key: test_feature_table_job_cluster
+          <<: *new_cluster
+      tasks:
+        - task_key: FeatureStore
+          job_cluster_key: test_feature_table_job_cluster
+          notebook_task:
+            notebook_path: ../feature_engineering/notebooks/FeatureStore.py
+            base_parameters:
+              datasets_path: dbfs:/mnt/dbacademy-datasets/ml-in-production/v01/airbnb/sf-listings
+              input_file_name: sf-listings.csv
+              output_table_name: ml_production.${bundle.target}_airbnb
+              primary_keys: id
+              partition_columns: neighbourhood
+              # git source information of current ML resource deployment. It will be persisted as part of the workflow run
+              git_source_info: url:${bundle.git.origin_url}; branch:${bundle.git.branch}; commit:${bundle.git.commit}
+              existing_cluster_id: ${var.cluster_id}
+      schedule:
+        quartz_cron_expression: "0 0 7 * * ?" # daily at 7am
+        timezone_id: UTC
+      <<: *permissions
+      # If you want to turn on notifications for this job, please uncomment the below code,
+      # and provide a list of emails to the on_failure argument.
+      #
+      #  email_notifications:
+      #    on_failure:
+      #      - first@company.com
+      #      - second@company.com
