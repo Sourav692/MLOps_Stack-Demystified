@@ -5,10 +5,10 @@ bundle:
 variables:
   experiment_name:
     description: Experiment name for the model training.
-    default: /Users/${workspace.current_user.userName}/${bundle.target}-my_mlops_stack-experiment
+    default: /Users/${workspace.current_user.userName}/${bundle.target}-my_mlops_stack-experiment-poc
   model_name:
     description: Model name for the model training.
-    default: ${bundle.target}-my_mlops_stack-model
+    default: ${bundle.target}-my_mlops_stack-RandomForestRegressor_Model
   cluster_id:
     description: Cluster id for compute.
     default: 0603-073547-ypydpsk
@@ -18,7 +18,8 @@ include:
   # And workflows resources for the ML project including model training -> validation -> deployment,
   # feature engineering,  batch inference, quality monitoring, metric refresh, alerts and triggering retraining
   # - ./resources/*.yml
-  - ./resources/feature-store-workflow-resource.yml
+  - ./resources/feature-store-poc.yml
+  - ./resources/model-workflow-poc.yml
   # - ./resources/ml-artifacts-resource.yml
   # - ./resources/model-workflow-resource.yml
   # - ./resources/feature-engineering-workflow-resource.yml
