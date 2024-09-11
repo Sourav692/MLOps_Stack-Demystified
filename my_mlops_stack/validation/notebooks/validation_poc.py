@@ -72,10 +72,18 @@ else:
 experiment_name = dbutils.widgets.get("experiment_name")
 mlflow.set_experiment(experiment_name)
 
+# set model evaluation parameters that can be inferred from the job
+model_uri = dbutils.jobs.taskValues.get("Train", "model_uri", debugValue="")
+model_name = dbutils.jobs.taskValues.get("Train", "model_name", debugValue="")
+model_version = dbutils.jobs.taskValues.get("Train", "model_version", debugValue="")
+
+print(f"model_version: {model_version}")
+
 # Set model details
-model_name = dbutils.widgets.get("model_name")
-model_version = dbutils.widgets.get("model_version")
-model_uri = f"models:/{model_name}/{model_version}" if model_version else None
+if model_uri == "":
+    model_name = dbutils.widgets.get("model_name")
+    model_version = dbutils.widgets.get("model_version")
+    model_uri = f"models:/{model_name}/{model_version}" if model_version else None
 
 # Enable baseline comparison
 enable_baseline_comparison = dbutils.widgets.get("enable_baseline_comparison") == "true"
@@ -136,9 +144,13 @@ validation_thresholds = {
 }
 
 training_run = get_training_run(model_name, model_version)
+run = generate_run_name(training_run)
 
 # Run validation within an MLflow run
-with mlflow.start_run(run_name="Model_Validation") as run, tempfile.TemporaryDirectory() as tmp_dir:
+with mlflow.start_run(
+        run_name=run,
+        description=generate_description(training_run),
+    ) as run, tempfile.TemporaryDirectory() as tmp_dir:
     validation_thresholds_file = os.path.join(tmp_dir, "validation_thresholds.txt")
     
     # Log validation thresholds to MLflow
