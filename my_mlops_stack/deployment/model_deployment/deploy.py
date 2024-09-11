@@ -17,6 +17,8 @@ def deploy(model_uri, env):
     :return:
     """
     _, model_name, version = model_uri.split("/")
+    print(f"Deploying model with URI {model_uri} to {env}")
+    print(f"Model name: {model_name}, version: {version}")
     client = MlflowClient()
     mv = client.get_model_version(model_name, version)
     target_stage = get_deployed_model_stage_for_env(env)
