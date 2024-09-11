@@ -53,17 +53,17 @@ resources:
               env: ${bundle.target}
               git_source_info: url:${bundle.git.origin_url}; branch:${bundle.git.branch}; commit:${bundle.git.commit}
           existing_cluster_id: ${var.cluster_id}
-        # - task_key: ModelServing
-        #   job_cluster_key: model_training_job_cluster
-        #   depends_on:
-        #     - task_key: ModelDeployment
-        #   notebook_task:
-        #     notebook_path: ../deployment/model_serving/notebooks/ModelServing.py
-        #     base_parameters:
-        #       env: ${bundle.target}
-        #       # git source information of current ML resource deployment. It will be persisted as part of the workflow run
-        #       git_source_info: url:${bundle.git.origin_url}; branch:${bundle.git.branch}; commit:${bundle.git.commit}
-        #   existing_cluster_id: ${var.cluster_id} 
+        - task_key: ModelServing
+          # job_cluster_key: model_training_job_cluster
+          depends_on:
+            - task_key: ModelDeployment
+          notebook_task:
+            notebook_path: ../deployment/model_serving/notebooks/ModelServing.py
+            base_parameters:
+              env: ${bundle.target}
+              # git source information of current ML resource deployment. It will be persisted as part of the workflow run
+              git_source_info: url:${bundle.git.origin_url}; branch:${bundle.git.branch}; commit:${bundle.git.commit}
+          existing_cluster_id: ${var.cluster_id} 
       # schedule:
       #   quartz_cron_expression: "0 0 9 * * ?" # daily at 9am
       #   timezone_id: UTC
