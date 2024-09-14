@@ -14,9 +14,9 @@ common_permissions: &permissions
 resources:
   jobs:
     real_time_inference_job:
-      name: ${bundle.target}-my_mlops_stack-real-inference-job_poc
+      name: ${bundle.target}-mlops_stack-real-inference-job_poc
       tasks:
-        - task_key: real_inference_job
+        - task_key: real_time_inference
           # <<: *new_cluster
           notebook_task:
             notebook_path: ../deployment/realtime_inference/notebooks/RealTimeInference_poc.py

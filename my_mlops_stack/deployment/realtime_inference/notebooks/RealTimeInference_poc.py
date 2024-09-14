@@ -114,4 +114,4 @@ final_df = pd.concat([df, predictions_df], axis=1)
 final_df.display()
 
 # COMMAND ----------
-final_df.write.format("delta").mode("overwrite").saveAsTable(output_table_name)
+# final_df.write.format("delta").mode("overwrite").saveAsTable(output_table_name)

@@ -14,9 +14,9 @@ common_permissions: &permissions
 resources:
   jobs:
     batch_inference_job:
-      name: ${bundle.target}-my_mlops_stack-batch-inference-job_poc
+      name: ${bundle.target}-mlops_stack-batch-inference-job_poc
       tasks:
-        - task_key: batch_inference_job
+        - task_key: batch_inference
           # <<: *new_cluster
           notebook_task:
             notebook_path: ../deployment/batch_inference/notebooks/BatchInference_poc.py

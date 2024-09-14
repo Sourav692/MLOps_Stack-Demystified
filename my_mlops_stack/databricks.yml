@@ -1,6 +1,6 @@
 # The name of the bundle. run `databricks bundle schema` to see the full bundle settings schema.
 bundle:
-  name: my_mlops_stack
+  name: mlops_stack_poc
 
 variables:
   experiment_name:
@@ -19,7 +19,7 @@ include:
   # feature engineering,  batch inference, quality monitoring, metric refresh, alerts and triggering retraining
   # - ./resources/*.yml
   # - ./resources/feature-store-poc.yml
-  # - ./resources/model-workflow-poc.yml
+  - ./resources/model-workflow-poc.yml
   - ./resources/batch-inference-poc.yml
   - ./resources/real-time-inference-poc.yml
   # - ./resources/ml-artifacts-resource.yml
