@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
 
     needs:
-      - Deploy bundle
+      - deploy
 
     steps:
       - uses: actions/checkout@v3
