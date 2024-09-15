@@ -32,23 +32,23 @@ jobs:
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
           DATABRICKS_BUNDLE_ENV: dev
 
-  feature_engineering:
-    name: "Run Feature Engineering"
-    runs-on: ubuntu-latest
+  # feature_engineering:
+  #   name: "Run Feature Engineering"
+  #   runs-on: ubuntu-latest
 
-    needs:
-      - deploy
+  #   needs:
+  #     - deploy
 
-    steps:
-      - uses: actions/checkout@v3
-      - uses: databricks/setup-cli@main
-      - shell: bash
-        name: Run pipeline update
-        run: |
-          databricks bundle run write_feature_table_job -t dev --refresh-all 2>&1 | tee output.log
-        env:
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
-          DATABRICKS_BUNDLE_ENV: dev
+  #   steps:
+  #     - uses: actions/checkout@v3
+  #     - uses: databricks/setup-cli@main
+  #     - shell: bash
+  #       name: Run pipeline update
+  #       run: |
+  #         databricks bundle run write_feature_table_job -t dev --refresh-all 2>&1 | tee output.log
+  #       env:
+  #         DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+  #         DATABRICKS_BUNDLE_ENV: dev
   
   model_training:
     name: "Run Model Training"
@@ -81,7 +81,25 @@ jobs:
       - shell: bash
         name: Run pipeline update
         run: |
-          databricks bundle run batch_inference_job -t dev --refresh-all 2>&1 | tee model-training-job_output.log
+          databricks bundle run batch_inference_job -t dev --refresh-all 2>&1 | tee batch-inference-job_output.log
+        env:
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_BUNDLE_ENV: dev 
+
+  real_time_inference:
+    name: "Run Real Time Inference"
+    runs-on: ubuntu-latest
+
+    needs:
+      - model_training
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: databricks/setup-cli@main
+      - shell: bash
+        name: Run pipeline update
+        run: |
+          databricks bundle run real_time_inference_job -t dev --refresh-all 2>&1 | tee real-time-inference-job_output.log
         env:
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
           DATABRICKS_BUNDLE_ENV: dev 
