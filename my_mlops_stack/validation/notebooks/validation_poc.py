@@ -136,7 +136,7 @@ def generate_description(training_run):
 
 # COMMAND ----------
 
-# DBTITLE 1, Run Model Evaluation
+# DBTITLE 1, Run Model Evaluation_
 validation_thresholds = {
     "mean_squared_error": MetricThreshold(0.5, greater_is_better=False),
     "mean_absolute_error": MetricThreshold(0.5, greater_is_better=False),
