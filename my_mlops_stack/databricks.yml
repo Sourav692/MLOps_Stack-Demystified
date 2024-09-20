@@ -19,9 +19,11 @@ include:
   # feature engineering,  batch inference, quality monitoring, metric refresh, alerts and triggering retraining
   # - ./resources/*.yml
   # - ./resources/feature-store-poc.yml
+  
   - ./resources/model-workflow-poc.yml
-  - ./resources/batch-inference-poc.yml
-  - ./resources/real-time-inference-poc.yml
+  # - ./resources/batch-inference-poc.yml
+  # - ./resources/real-time-inference-poc.yml
+
   # - ./resources/ml-artifacts-resource.yml
   # - ./resources/model-workflow-resource.yml
   # - ./resources/feature-engineering-workflow-resource.yml
@@ -34,8 +36,9 @@ targets:
     variables:
         cluster_id: 0603-073547-ypydpsk
     workspace:
-      # TODO: add dev workspace URL
       host: https://adb-2753962522174656.16.azuredatabricks.net
+    # include:
+    #   - ./resources/model-workflow-poc.yml
 
   staging:
     mode: production
@@ -46,6 +49,9 @@ targets:
       root_path: /Users/sourav.banerjee@databricks.com/.bundle/${bundle.name}/${bundle.target}
     run_as:
       user_name: sourav.banerjee@databricks.com
+    # include:
+    #   - ./resources/model-workflow-poc.yml
+    #   - ./resources/batch-inference-poc.yml
       
 
   prod:
