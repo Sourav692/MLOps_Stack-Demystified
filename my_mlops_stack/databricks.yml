@@ -22,7 +22,7 @@ include:
   
   - ./resources/model-workflow-poc.yml
   - ./resources/batch-inference-poc.yml
-  # - ./resources/real-time-inference-poc.yml
+  - ./resources/real-time-inference-poc.yml
 
   # - ./resources/ml-artifacts-resource.yml
   # - ./resources/model-workflow-resource.yml

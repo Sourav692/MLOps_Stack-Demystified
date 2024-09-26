@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
 
     needs:
-      - feature_engineering
+      - deploy
 
     steps:
       - uses: actions/checkout@v3
@@ -85,4 +85,21 @@ jobs:
         env:
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
           DATABRICKS_BUNDLE_ENV: prod 
-            
+
+  real_inference:
+    name: "Run Real Time Inference"
+    runs-on: ubuntu-latest
+
+    needs:
+      - model_training
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: databricks/setup-cli@main
+      - shell: bash
+        name: Run pipeline update
+        run: |
+          databricks bundle run real_time_inference_job -t prod --refresh-all 2>&1 | tee real_inference-job_output.log
+        env:
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_BUNDLE_ENV: prod 

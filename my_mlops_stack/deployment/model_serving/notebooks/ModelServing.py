@@ -27,32 +27,54 @@ API_ROOT = dbutils.notebook.entry_point.getDbutils().notebook().getContext().api
 API_TOKEN = dbutils.notebook.entry_point.getDbutils().notebook().getContext().apiToken().get()
 
 # COMMAND ----------
+headers = {"Context-Type": "text/json", "Authorization": f"Bearer {API_TOKEN}"}
 
-data={
-  "name": endpoint_name,
-  "config": {
+serving_endpoint_response= requests.get(
+    url=f"{API_ROOT}/api/2.0/serving-endpoints/{endpoint_name}",headers=headers
+)
+
+# COMMAND ----------
+
+if serving_endpoint_response.status_code == 200:
+    data={
     "served_entities": [
-      {
+        {
         "name": f"{model_name}-{model_version}",
         "entity_name": model_name,
         "entity_version": model_version,
         "workload_size": workload_size,
         "scale_to_zero_enabled": True
-      }
+        }
     ]
-  },
-  "tags": [
-    {
-      "key": "team",
-      "value": "MLOps"
     }
-  ]
-}
-
-headers = {"Context-Type": "text/json", "Authorization": f"Bearer {API_TOKEN}"}
+    response = requests.put(
+            url=f"{API_ROOT}/api/2.0/serving-endpoints/{endpoint_name}/config", json=data, headers=headers
+        )
+    print(json.dumps(response.json(), indent=4))
+else:
+    data={
+    "name": endpoint_name,
+    "config": {
+        "served_entities": [
+        {
+            "name": f"{model_name}-{model_version}",
+            "entity_name": model_name,
+            "entity_version": model_version,
+            "workload_size": workload_size,
+            "scale_to_zero_enabled": True
+        }
+        ]
+    },
+    "tags": [
+        {
+        "key": "team",
+        "value": "MLOps"
+        }
+    ]
+    }
  
-response = requests.post(
-    url=f"{API_ROOT}/api/2.0/serving-endpoints", json=data, headers=headers
-)
+    response = requests.post(
+        url=f"{API_ROOT}/api/2.0/serving-endpoints", json=data, headers=headers
+    )
  
-print(json.dumps(response.json(), indent=4))
+    print(json.dumps(response.json(), indent=4))
