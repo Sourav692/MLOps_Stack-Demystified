@@ -38,7 +38,7 @@ resources:
             base_parameters:
               experiment_name: ${var.experiment_name}
               run_mode: dry_run
-              enable_baseline_comparison: "false"
+              enable_baseline_comparison: "true"
               model_type: regressor
               targets: MedHouseValue
               git_source_info: url:${bundle.git.origin_url}; branch:${bundle.git.branch}; commit:${bundle.git.commit}
